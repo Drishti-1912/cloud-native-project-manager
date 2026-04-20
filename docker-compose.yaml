@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: projectman-db
+    environment:
+      POSTGRES_DB: projectman
+      POSTGRES_USER: projectman
+      POSTGRES_PASSWORD: securepassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: projectman-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=projectman
+      - DB_USER=projectman
+      - DB_PASSWORD=securepassword
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: projectman-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
