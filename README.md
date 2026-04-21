@@ -1,28 +1,67 @@
-# Cloud Native 3‑Tier Project Management System
+# ☁️ Cloud Native Project Management System
 
-A lightweight, cloud‑native project and task management system built with a **3‑tier architecture**:
+A lightweight, production-ready 3-tier project management app containerized with Docker Compose.
 
-- **Presentation Tier**: React frontend (Vite) served via nginx.
-- **Logic Tier**: Node.js + Express REST API.
-- **Data Tier**: PostgreSQL database.
+## Architecture
 
-All services are containerized and orchestrated with Docker Compose, making it easy to deploy locally or in any cloud environment.
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   Frontend       │────▶│   Backend        │────▶│   PostgreSQL     │
+│  React + Vite    │     │  Node + Express  │     │  (port 5432)     │
+│  nginx (port 80) │     │  (port 5000)     │     │                  │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+     :3000 (host)             :5000 (host)
+```
 
-## Running locally
+## Quick Start
 
-1. Clone the repo.
-2. At the root, run:
-   ```bash
-   docker-compose up --build
-   ```
-3. Open:
-   - Frontend: http://localhost:3000
-   - Backend health: http://localhost:5000/api/health
+```bash
+git clone <repo>
+cd projectman
+docker-compose up --build
+```
+
+Then open **http://localhost:3000**
 
 ## Features
 
-- Create and list projects.
-- Create and list tasks.
-- Cloud‑native, containerized design inspired by modern DevOps patterns.
+- **Projects** — Create, update status, delete projects
+- **Tasks** — Create tasks with priority, assignee, status; linked to projects
+- **Dashboard** — At-a-glance stats and recent activity
+- **Inline status updates** — Change status directly from cards
+- **Healthchecks** — Services start in correct dependency order
 
-Use this as a foundation and extend it with auth, CI/CD, Kubernetes manifests, or cloud‑vendor deployments (AWS, GCP, Azure).
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /api/health | Health check |
+| GET | /api/projects | List projects |
+| POST | /api/projects | Create project |
+| PUT | /api/projects/:id | Update project |
+| DELETE | /api/projects/:id | Delete project + tasks |
+| GET | /api/tasks | List tasks (optional ?projectId=) |
+| POST | /api/tasks | Create task |
+| PUT | /api/tasks/:id | Update task |
+| DELETE | /api/tasks/:id | Delete task |
+
+## Local Dev (without Docker)
+
+```bash
+# Start DB
+docker run -e POSTGRES_DB=projectman -e POSTGRES_USER=projectman \
+  -e POSTGRES_PASSWORD=securepassword -p 5432:5432 postgres:15-alpine
+
+# Backend
+cd backend && npm install && node server.js
+
+# Frontend
+cd frontend && npm install && npm run dev
+```
+
+## Extend It
+
+- Add JWT authentication
+- Add Kubernetes manifests (Deployments, Services, Ingress)
+- CI/CD with GitHub Actions
+- Deploy to AWS ECS / GCP Cloud Run / Azure Container Apps

@@ -2,16 +2,26 @@ version: "3.8"
 
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: projectman-db
     environment:
       POSTGRES_DB: projectman
       POSTGRES_USER: projectman
       POSTGRES_PASSWORD: securepassword
+
     ports:
       - "5432:5432"
-    volumes:
+
+    volumes:   # ✅ CORRECT PLACE
       - db_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U projectman -d projectman"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 
   backend:
     build: ./backend
@@ -19,20 +29,30 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DB_HOST=db
-      - DB_NAME=projectman
-      - DB_USER=projectman
-      - DB_PASSWORD=securepassword
+      DB_HOST: db
+      DB_NAME: projectman
+      DB_USER: projectman
+      DB_PASSWORD: securepassword
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   frontend:
     build: ./frontend
     container_name: projectman-frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
+
+# ✅ ONLY declare named volumes here
 volumes:
   db_data:
